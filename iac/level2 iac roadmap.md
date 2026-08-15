@@ -45,7 +45,6 @@ Every IAM policy statement has a `Sid` field, and AWS requires it to be letters 
 
 **What happened when I deployed it:** also worked cleanly on the first try, same reason as CloudFormation -the `Sid` fix was already applied before I ran anything.
 
-**The moment this "CDK is just CloudFormation underneath" idea became real, not just a fact I'd read:** I ran `cdk synth`, which prints out the actual CloudFormation template CDK generated from my code. My TypeScript code was maybe 150 lines. The generated CloudFormation YAML was much longer and full of things like `Fn::Join` and `Ref: AWS::Partition` -verbose syntax my clean code never mentioned, because CDK writes that boilerplate for me automatically.
 
 **Where CDK genuinely saved effort:** creating 11 users. In CloudFormation, that meant 11 separate, nearly-identical blocks of YAML, copy-pasted with just the username changed each time. In CDK, it was one loop over a list of names -about 6 lines total, regardless of whether there were 11 users or 100.
 
