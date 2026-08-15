@@ -1,0 +1,36 @@
+{
+  "groupName": "Finance",
+  "description": "Cost Explorer, AWS Budgets, billing visibility, and read-only visibility into account resources.",
+  "awsManagedPolicies": [
+    "Billing",
+    "AWSBillingReadOnlyAccess",
+    "AWSBudgetsReadOnlyAccess",
+    "ViewOnlyAccess"
+  ],
+  "customPolicies": [
+    {
+      "name": "CostExplorerAccess",
+      "type": "inline",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "CostExplorerAccess",
+            "Effect": "Allow",
+            "Action": [
+              "ce:GetCostAndUsage",
+              "ce:GetCostForecast",
+              "ce:GetDimensionValues",
+              "ce:GetTags"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "Billing, Cost Explorer, and Budgets are three distinct AWS permission surfaces despite reading as one concept ('cost management') in the brief — each required its own policy.",
+    "AWSBudgetsReadOnlyAccess allows viewing budgets but not creating/editing them. If the Finance Manager needs to create new budget alerts independently, substitute AWSBudgetsActionsWithAWSResourceControlAccess."
+  ]
+}

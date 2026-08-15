@@ -1,0 +1,57 @@
+{
+  "groupName": "Developers",
+  "description": "EC2 management, read-write access to the application-files S3 bucket, and read-only access to CloudWatch Logs.",
+  "awsManagedPolicies": [
+    "AmazonEC2FullAccess"
+  ],
+  "customPolicies": [
+    {
+      "name": "S3AppFilesAccess",
+      "type": "inline",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "S3AppFilesAccess",
+            "Effect": "Allow",
+            "Action": [
+              "s3:GetObject",
+              "s3:PutObject",
+              "s3:DeleteObject",
+              "s3:ListBucket"
+            ],
+            "Resource": [
+              "arn:aws:s3:::REPLACE_WITH_APP_BUCKET_NAME",
+              "arn:aws:s3:::REPLACE_WITH_APP_BUCKET_NAME/*"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "CloudWatchLogsReadOnly",
+      "type": "inline",
+      "document": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "CloudWatchLogsReadOnly",
+            "Effect": "Allow",
+            "Action": [
+              "logs:GetLogEvents",
+              "logs:DescribeLogGroups",
+              "logs:DescribeLogStreams",
+              "logs:FilterLogEvents"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "S3 access is scoped to a single named bucket (application files only), not the broader AmazonS3ReadOnlyAccess managed policy, since S3 also stores user data that Developers should not access.",
+    "CloudWatch Logs access is read-only, matching the brief's 'logs viewing' requirement — not the CloudWatch or CloudWatch Events namespaces, which are separate permission surfaces.",
+    "See project documentation section 4.2 for the tag-conditioned dev/prod variant and the self-service instance-creation enhancement (aws:RequestTag) that extends this baseline."
+  ]
+}

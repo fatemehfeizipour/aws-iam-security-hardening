@@ -1,0 +1,13 @@
+{
+  "groupName": "Analysts",
+  "description": "Read-only access to S3 and read-only visibility into RDS.",
+  "awsManagedPolicies": [
+    "AmazonRDSReadOnlyAccess",
+    "AmazonS3ReadOnlyAccess"
+  ],
+  "customPolicies": [],
+  "notes": [
+    "AmazonRDSReadOnlyAccess governs the RDS API/metadata (viewing instance configuration, status, snapshots) — it does NOT grant read access to rows or tables inside the database. Actual query-level read access requires a separate database-level credential (e.g., a Postgres/MySQL user with SELECT-only grants), outside IAM's scope.",
+    "AmazonS3ReadOnlyAccess grants access to every bucket in the account, not scoped to a single bucket. Documented as a known broadness gap — consider replacing with a custom policy scoped to the specific data bucket, matching the approach used for Developers' S3 access."
+  ]
+}

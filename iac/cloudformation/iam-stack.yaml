@@ -1,0 +1,284 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  IAM security hardening project — recreated in CloudFormation.
+  Five groups (cf-Developers, cf-Operations, cf-Finance, cf-Analysts,
+  cf-Administrators), least-privilege policies, and MFA enforcement.
+  Resources are prefixed cf- to run alongside the console-built originals
+  and the tf- prefixed Terraform version without any naming collisions.
+
+Parameters:
+  AppBucketName:
+    Type: String
+    Description: S3 bucket name for application files (Developers group scope)
+    Default: cf-test-app-files-placeholder
+
+Resources:
+
+  ### -----------------------------------------------------------------
+  ### Groups
+  ### -----------------------------------------------------------------
+  # AWS::IAM::Group accepts a ManagedPolicyArns list directly on the
+  # group itself — no separate attachment resource needed, unlike
+  # Terraform's aws_iam_group_policy_attachment.
+
+  DevelopersGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: cf-Developers
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+
+  OperationsGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: cf-Operations
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+
+  FinanceGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: cf-Finance
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/Billing
+        - arn:aws:iam::aws:policy/AWSBillingReadOnlyAccess
+        - arn:aws:iam::aws:policy/AWSBudgetsReadOnlyAccess
+        - arn:aws:iam::aws:policy/job-function/ViewOnlyAccess
+
+  AnalystsGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: cf-Analysts
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonRDSReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+  AdministratorsGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: cf-Administrators
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  ### -----------------------------------------------------------------
+  ### Custom managed policies
+  ### -----------------------------------------------------------------
+  # Note: the "name" field below (S3AppFilesAccess, etc.) may contain
+  # hyphens — AWS allows that. The "Sid" values inside PolicyDocument
+  # must be alphanumeric only, no hyphens — this tripped up the
+  # Terraform build (MalformedPolicyDocument error) and is fixed here
+  # proactively rather than discovered the hard way a second time.
+
+  S3AppFilesAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: cf-S3AppFilesAccess
+      Description: Read-write access to the application-files S3 bucket only.
+      Groups:
+        - !Ref DevelopersGroup
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: CfS3AppFilesAccess
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+              - s3:ListBucket
+            Resource:
+              - !Sub arn:aws:s3:::${AppBucketName}
+              - !Sub arn:aws:s3:::${AppBucketName}/*
+
+  CloudWatchLogsReadOnlyPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: cf-CloudWatchLogsReadOnly
+      Description: Read-only CloudWatch Logs access.
+      Groups:
+        - !Ref DevelopersGroup
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: CfCloudWatchLogsReadOnly
+            Effect: Allow
+            Action:
+              - logs:GetLogEvents
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+              - logs:FilterLogEvents
+            Resource: '*'
+
+  CostExplorerAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: cf-CostExplorerAccess
+      Description: Cost Explorer read access — separate permission surface from Billing/Budgets.
+      Groups:
+        - !Ref FinanceGroup
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: CfCostExplorerAccess
+            Effect: Allow
+            Action:
+              - ce:GetCostAndUsage
+              - ce:GetCostForecast
+              - ce:GetDimensionValues
+              - ce:GetTags
+            Resource: '*'
+
+  RequireMFAPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: cf-Require-MFA
+      Description: Denies nearly all actions unless the user has authenticated with MFA.
+      Groups:
+        - !Ref DevelopersGroup
+        - !Ref OperationsGroup
+        - !Ref FinanceGroup
+        - !Ref AnalystsGroup
+        - !Ref AdministratorsGroup
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowViewAccountInfo
+            Effect: Allow
+            Action:
+              - iam:GetAccountPasswordPolicy
+              - iam:ListVirtualMFADevices
+            Resource: '*'
+          - Sid: AllowManageOwnMFA
+            Effect: Allow
+            Action:
+              - iam:CreateVirtualMFADevice
+              - iam:EnableMFADevice
+              - iam:ResyncMFADevice
+              - iam:DeactivateMFADevice
+              - iam:DeleteVirtualMFADevice
+            Resource: 'arn:aws:iam::*:mfa/${aws:username}'
+          - Sid: DenyAllExceptMFAWhenUnauthenticated
+            Effect: Deny
+            NotAction:
+              - iam:CreateVirtualMFADevice
+              - iam:EnableMFADevice
+              - iam:GetUser
+              - iam:ListMFADevices
+              - iam:ListVirtualMFADevices
+              - iam:ResyncMFADevice
+              - sts:GetSessionToken
+            Resource: '*'
+            Condition:
+              BoolIfExists:
+                'aws:MultiFactorAuthPresent': 'false'
+
+  ### -----------------------------------------------------------------
+  ### Users
+  ### -----------------------------------------------------------------
+  # CloudFormation has no native looping construct — no equivalent to
+  # Terraform's for_each. Each user is its own hardcoded resource.
+  # AWS::IAM::User accepts a Groups list directly, same pattern as
+  # ManagedPolicyArns above — no separate membership resource needed.
+
+  Dev1User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-dev1
+      Groups: [!Ref DevelopersGroup]
+
+  Dev2User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-dev2
+      Groups: [!Ref DevelopersGroup]
+
+  Dev3User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-dev3
+      Groups: [!Ref DevelopersGroup]
+
+  Dev4User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-dev4
+      Groups: [!Ref DevelopersGroup]
+
+  Ops1User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-ops1
+      Groups: [!Ref OperationsGroup]
+
+  Ops2User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-ops2
+      Groups: [!Ref OperationsGroup]
+
+  FinanceManagerUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-finance-manager
+      Groups: [!Ref FinanceGroup]
+
+  Analyst1User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-analyst1
+      Groups: [!Ref AnalystsGroup]
+
+  Analyst2User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-analyst2
+      Groups: [!Ref AnalystsGroup]
+
+  Analyst3User:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-analyst3
+      Groups: [!Ref AnalystsGroup]
+
+  AdminUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: cf-admin
+      Groups: [!Ref AdministratorsGroup]
+
+  ### -----------------------------------------------------------------
+  ### Account password policy — NOT included here
+  ### -----------------------------------------------------------------
+  # CloudFormation has no native AWS::IAM::AccountPasswordPolicy
+  # resource type. Unlike Terraform (which has
+  # aws_iam_account_password_policy), there is no built-in way to
+  # manage the account-wide password policy through a plain
+  # CloudFormation template. The only ways to do this in CloudFormation
+  # are:
+  #   1. A custom resource backed by a Lambda function that calls
+  #      iam:UpdateAccountPasswordPolicy directly, or
+  #   2. Manage the password policy outside CloudFormation entirely
+  #      (console, CLI, or a separate Terraform run).
+  # This template deliberately does not attempt a custom resource for
+  # this, since the account password policy is a genuine single,
+  # account-wide setting already correctly managed via the console and
+  # via Terraform's aws_iam_account_password_policy resource — adding
+  # a third, CloudFormation-specific mechanism for the exact same
+  # single setting would create more risk of drift, not less.
+
+Outputs:
+  DevelopersGroupArn:
+    Value: !GetAtt DevelopersGroup.Arn
+  OperationsGroupArn:
+    Value: !GetAtt OperationsGroup.Arn
+  FinanceGroupArn:
+    Value: !GetAtt FinanceGroup.Arn
+  AnalystsGroupArn:
+    Value: !GetAtt AnalystsGroup.Arn
+  AdministratorsGroupArn:
+    Value: !GetAtt AdministratorsGroup.Arn
+  RequireMFAPolicyArn:
+    Value: !Ref RequireMFAPolicy

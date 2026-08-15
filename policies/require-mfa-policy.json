@@ -1,0 +1,55 @@
+{
+  "policyName": "Require-MFA",
+  "type": "customer-managed",
+  "attachedTo": ["Developers", "Operations", "Finance", "Analysts", "Administrators"],
+  "description": "Denies nearly all actions unless the user has authenticated with MFA. Users may still manage their own MFA device before one is configured.",
+  "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "AllowViewAccountInfo",
+        "Effect": "Allow",
+        "Action": [
+          "iam:GetAccountPasswordPolicy",
+          "iam:ListVirtualMFADevices"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "AllowManageOwnMFA",
+        "Effect": "Allow",
+        "Action": [
+          "iam:CreateVirtualMFADevice",
+          "iam:EnableMFADevice",
+          "iam:ResyncMFADevice",
+          "iam:DeactivateMFADevice",
+          "iam:DeleteVirtualMFADevice"
+        ],
+        "Resource": "arn:aws:iam::*:mfa/${aws:username}"
+      },
+      {
+        "Sid": "DenyAllExceptMFAWhenUnauthenticated",
+        "Effect": "Deny",
+        "NotAction": [
+          "iam:CreateVirtualMFADevice",
+          "iam:EnableMFADevice",
+          "iam:GetUser",
+          "iam:ListMFADevices",
+          "iam:ListVirtualMFADevices",
+          "iam:ResyncMFADevice",
+          "sts:GetSessionToken"
+        ],
+        "Resource": "*",
+        "Condition": {
+          "BoolIfExists": {
+            "aws:MultiFactorAuthPresent": "false"
+          }
+        }
+      }
+    ]
+  },
+  "notes": [
+    "NotAction with BoolIfExists ensures the deny applies even to sessions that carry no MFA context key at all (e.g. a fresh login), not just sessions where it's explicitly false.",
+    "The ${aws:username} policy variable scopes each user's MFA-management permission to their own device only."
+  ]
+}

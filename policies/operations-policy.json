@@ -1,0 +1,16 @@
+
+{
+  "groupName": "Operations",
+  "description": "Full EC2 and RDS management, Systems Manager access, and full CloudWatch access.",
+  "awsManagedPolicies": [
+    "AmazonEC2FullAccess",
+    "AmazonRDSFullAccess",
+    "AmazonSSMFullAccess",
+    "CloudWatchFullAccess"
+  ],
+  "customPolicies": [],
+  "notes": [
+    "CloudWatchFullAccess covers the core CloudWatch namespace (cloudwatch:*) — alarms, dashboards, metrics. Verify separately whether it includes logs:* actions; if Operations needs full log group management (not just metrics), attach CloudWatchLogsFullAccess as well.",
+    "An earlier draft mistakenly attached AWSSystemsManagerForSAPFullAccess (SAP-specific, not general SSM) and CloudWatchEventsFullAccess (EventBridge, not CloudWatch) — both caught and corrected during review. See project documentation for details."
+  ]
+}

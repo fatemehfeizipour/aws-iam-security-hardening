@@ -1,0 +1,11 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored — never commit real bucket names or account-specific values here.
+
+app_bucket_name = "your-app-files-bucket-name"
+
+# Optional overrides — defaults are already set in variables.tf
+# developer_usernames  = ["tf-dev1", "tf-dev2", "tf-dev3", "tf-dev4"]
+# operations_usernames = ["tf-ops1", "tf-ops2"]
+# finance_usernames    = ["tf-finance-manager"]
+# analyst_usernames    = ["tf-analyst1", "tf-analyst2", "tf-analyst3"]
+# admin_usernames      = ["tf-admin"]
