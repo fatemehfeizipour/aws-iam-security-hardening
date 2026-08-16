@@ -270,7 +270,7 @@ An IAM user with `AdministratorAccess` was created to replace day-to-day root us
 - [x] Least-privilege policies implemented per group
 - [x] Account-wide MFA enforcement and password policy
 - [x] Documentation (this file)
-- [x] Infrastructure as Code - Terraform / CloudFormation / CDK (see `LEVEL2-IAC-ROADMAP.md`)
+- [x] Infrastructure as Code - Terraform / CloudFormation / CDK (see `![LEVEL2-IAC-ROADMAP.md](../iac/level2-iac-roadmap.md)`)
 
 ---
 
