@@ -83,7 +83,7 @@ aws cloudformation create-stack --stack-name cf-iam-security-stack --template-bo
 cd iac/CDK
 npx cdk deploy --require-approval never
 ```
-walk-through video ['walk-through video '](https://www.linkedin.com/posts/fatemeh-feyzipour_aws-terraform-cloudformation-activity-7495320177169928192-3ID5?utm_source=share&utm_medium=member_desktop&rcm=ACoAADOdEekBNejZcME7HcR483AQlDee7t4jnBU)
+[walk-through video ](https://www.linkedin.com/posts/fatemeh-feyzipour_aws-terraform-cloudformation-activity-7495320177169928192-3ID5?utm_source=share&utm_medium=member_desktop&rcm=ACoAADOdEekBNejZcME7HcR483AQlDee7t4jnBU)
 
-Medium Blog ['Medium Blog'](
+[Medium Blog](
 https://medium.com/@fatemehfeizipur/the-same-iam-setup-built-three-ways-what-terraform-cloudformation-and-cdk-actually-taught-me-9885d0b33664?sharedUserId=fatemehfeizipur)
