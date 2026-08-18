@@ -275,3 +275,7 @@ An IAM user with `AdministratorAccess` was created to replace day-to-day root us
 ---
 
 *This project was built as a hands-on portfolio exercise for a fictional client scenario, to practice AWS IAM design, least-privilege policy authorship, and cloud security fundamentals.*
+
+[Walk-through video - part one] (https://www.linkedin.com/posts/fatemeh-feyzipour_aws-cloudsecurity-iam-activity-7492586371396554753-ISwl?utm_source=share&utm_medium=member_desktop&rcm=ACoAADOdEekBNejZcME7HcR483AQlDee7t4jnBU)
+
+[Medium Blog - part one] (https://medium.com/@fatemehfeizipur/from-everyone-shares-root-to-least-privilege-an-aws-iam-security-project-b810d175512b?sharedUserId=fatemehfeizipur)
