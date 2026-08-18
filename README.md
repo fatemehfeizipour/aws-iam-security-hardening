@@ -66,10 +66,11 @@ Built to practice real IAM design decisions under a realistic, imperfect brief -
 
 *Feedback and suggestions welcome - open an issue or reach out.*
 
-Walkthrough video:
+[Walk-through video - part one](https://www.linkedin.com/posts/fatemeh-feyzipour_aws-cloudsecurity-iam-activity-7492586371396554753-ISwl?utm_source=share&utm_medium=member_desktop&rcm=ACoAADOdEekBNejZcME7HcR483AQlDee7t4jnBU)
 
-https://www.linkedin.com/posts/fatemeh-feyzipour_aws-cloudsecurity-iam-ugcPost-7492586192283095041-fKFb/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADOdEekBNejZcME7HcR483AQlDee7t4jnBU
+[Medium Blog - part one](https://medium.com/@fatemehfeizipur/from-everyone-shares-root-to-least-privilege-an-aws-iam-security-project-b810d175512b?sharedUserId=fatemehfeizipur)
 
-Medium blog:
+[walk-through video ](https://www.linkedin.com/posts/fatemeh-feyzipour_aws-terraform-cloudformation-activity-7495320177169928192-3ID5?utm_source=share&utm_medium=member_desktop&rcm=ACoAADOdEekBNejZcME7HcR483AQlDee7t4jnBU)
 
-https://medium.com/@fatemehfeizipur/from-everyone-shares-root-to-least-privilege-an-aws-iam-security-project-b810d175512b?sharedUserId=fatemehfeizipur
+[Medium Blog](
+https://medium.com/@fatemehfeizipur/the-same-iam-setup-built-three-ways-what-terraform-cloudformation-and-cdk-actually-taught-me-9885d0b33664?sharedUserId=fatemehfeizipur)
